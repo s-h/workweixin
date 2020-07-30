@@ -47,14 +47,14 @@ def requestURL(url, body=None, n=3):
         n -= 1
         time.sleep(1)
         requestURL(url, body, n)
-    # 
+    #企业微信返回值不为0则访问错误 
     if rs["errcode"] != 0:
         print(rs["errmsg"])
         raise ConnectionError
     return rs
 
 # 获取企业微信token
-def get_token(corpid, corpsecret):
+def getToken(corpid, corpsecret):
     url = 'https://qyapi.weixin.qq.com'
     token_url = '%s/cgi-bin/gettoken?corpid=%s&corpsecret=%s' % (url, corpid, corpsecret)
     try:
@@ -65,7 +65,7 @@ def get_token(corpid, corpsecret):
     return rs["access_token"]
 
 # 发送告警信息
-def send_message(token, content, agentid):
+def sendAppMessage(token, content, agentid):
     url = 'https://qyapi.weixin.qq.com'
     values = {
         "touser": '@all',
@@ -81,7 +81,7 @@ def send_message(token, content, agentid):
     except ConnectionError:
         print("发送消息失败")
 
-def send_boot_message(webhookKey, content):
+def sendBootMessage(webhookKey, content):
     url="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + webhookKey
     values = {
         "msgtype": "markdown",
@@ -100,12 +100,12 @@ corpsecret = options.corpsecret
 content = options.content
 action = options.action
 if action == "sendApp":
-    token_rs=get_token(corpid, corpsecret)
+    token_rs=getToken(corpid, corpsecret)
     agentid = options.agentid
     token = token_rs
     #发送消息到应用
-    send_message(token=token, content=content, agentid=agentid)
+    sendAppMessage(token=token, content=content, agentid=agentid)
 elif action == "sendBot":
     #发送消息到群组机器人
     webhookKey = options.webhookKey
-    send_boot_message(webhookKey, content)
+    sendBootMessage(webhookKey, content)
