@@ -26,13 +26,13 @@
 管理->报警媒介类型->创建媒体类型
 
 其中脚本参数如图**不要加引号**
-![](img/1.png)
+![](https://github.com/s-h/workweixin/blob/master/img/1.png)
 脚本名称为上传至AlertScriptsPath目录的脚本名称
 #### 用户资料
-点击zabbix页面右上角![](img/5.png)图标->报警媒介->添加
-![](img/2.png)
+点击zabbix页面右上角![](https://github.com/s-h/workweixin/blob/master/img/5.png)图标->报警媒介->添加
+![](https://github.com/s-h/workweixin/blob/master/img/2.png)
 可选择报警级别
 #### 配置动作
 配置->动作->创建动作->操作(报警内容设置)->恢复操作(恢复报警设置)
-![](img/3.png)
-![](img/4.png)
+![](https://github.com/s-h/workweixin/blob/master/img/3.png)
+![](https://github.com/s-h/workweixin/blob/master/img/4.png)
