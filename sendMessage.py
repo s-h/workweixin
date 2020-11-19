@@ -17,7 +17,13 @@
 import json
 import requests
 import time
+import logging
 from optparse import OptionParser
+
+logFile = "/tmp/sendMessage.log"
+logLevel = logging.DEBUG
+logging.basicConfig(level=logLevel, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename=logFile)
+logger = logging.getLogger(__name__)
 
 parser = OptionParser()
 #执行动作
@@ -38,18 +44,18 @@ parser.add_option("--webhookKey", type="string", dest="webhookKey")
 def requestURL(url, body=None, n=3):
     # 尝试n回访问url
     if n <= 1:
-        print("访问'%s'失败" % url)
+        logger.error("访问'%s'失败" % url)
         raise ConnectionError
     try:
         rs = requests.post(url, body).json()
     except Exception as e:
-        print("连接重试")
+        logger.warning("连接重试")
         n -= 1
         time.sleep(1)
         requestURL(url, body, n)
     #企业微信返回值不为0则访问错误 
     if rs["errcode"] != 0:
-        print(rs["errmsg"])
+        logger.info(rs["errmsg"])
         raise ConnectionError
     return rs
 
@@ -60,7 +66,7 @@ def getToken(corpid, corpsecret):
     try:
         rs = requestURL(token_url)
     except ConnectionError:
-        print("获取token失败")
+        logger.error("获取token失败")
         exit()
     return rs["access_token"]
 
@@ -79,7 +85,7 @@ def sendAppMessage(token, content, agentid):
     try:
         rs = requestURL(send_url, body)
     except ConnectionError:
-        print("发送消息失败")
+        logger.error("发送应用消息失败")
 
 def sendBootMessage(webhookKey, content):
     url="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + webhookKey
@@ -93,19 +99,28 @@ def sendBootMessage(webhookKey, content):
     try:
         requestURL(url, body)
     except ConnectionError:
-        print("botMessage发送失败")
+        logger.error("botMessage发送失败")
 
 corpid = options.corpid
 corpsecret = options.corpsecret
 content = options.content
 action = options.action
 if action == "sendApp":
+    logger.info("用户动作为sendApp")
     token_rs=getToken(corpid, corpsecret)
     agentid = options.agentid
     token = token_rs
+    logger.debug("token:%s" % token)
+    logger.debug("content:%s" % content)
+    logger.debug("agentid:%s" % agentid)
     #发送消息到应用
     sendAppMessage(token=token, content=content, agentid=agentid)
 elif action == "sendBot":
     #发送消息到群组机器人
+    logger.info("用户动作为sendBot")
     webhookKey = options.webhookKey
+    logger.debug("content:%s" % content)
+    logger.debug("webhookKey:%s" % webhookKey)
     sendBootMessage(webhookKey, content)
+else:
+    logger.error("未知动作")
