@@ -8,10 +8,11 @@
 #         Email: mail@jianghao.tech
 #      HomePage: http://www.github.com/s-h
 #       Version: 0.0.1
-#    LastChange: 2020-07-29
+#    LastChange: 2021-07-13
 #       History:
 # =============================================================================
 '''
+# https://developer.work.weixin.qq.com/document/path/91770
 # 不再支持发送消息至企业微信应用
 # 支持发送消息至企业微信群组bot
 import json
