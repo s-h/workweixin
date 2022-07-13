@@ -12,15 +12,19 @@
 #       History:
 # =============================================================================
 '''
-# 支持发送消息至企业微信应用
+# 不再支持发送消息至企业微信应用
 # 支持发送消息至企业微信群组bot
 import json
+from typing import Dict
 import requests
 import time
 import logging
+import re
 from optparse import OptionParser
+from get_zabbix_img import get_zabbix_img
 
-logFile = "/tmp/sendMessage.log"
+#logFile = "/tmp/sendMessage.log"
+logFile = "sendMessage.log"
 logLevel = logging.DEBUG
 logging.basicConfig(level=logLevel, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename=logFile)
 logger = logging.getLogger(__name__)
@@ -29,19 +33,13 @@ parser = OptionParser()
 #执行动作
 parser.add_option("--action", type="string", dest="action", help=" \
     应用发送消息(sendApp)、bot发送消息(sendBot)")
-#企业id
-parser.add_option("--corpid", type="string", dest="corpid")
-#应用凭证秘钥
-parser.add_option("--corpsecret", type="string", dest="corpsecret")
 #消息内容
 parser.add_option("--content", type="string", dest="content")
-#应用id
-parser.add_option("--agentid", type="string", dest="agentid")
 #企业微信机器人webhook地址
 parser.add_option("--webhookKey", type="string", dest="webhookKey")
 (options,args) = parser.parse_args()
 
-def requestURL(url, body=None, n=3):
+def requestURL(url:str, body:Dict=None, n:int=3):
     # 尝试n回访问url
     if n <= 1:
         logger.error("访问'%s'失败" % url)
@@ -59,35 +57,7 @@ def requestURL(url, body=None, n=3):
         raise ConnectionError
     return rs
 
-# 获取企业微信token
-def getToken(corpid, corpsecret):
-    url = 'https://qyapi.weixin.qq.com'
-    token_url = '%s/cgi-bin/gettoken?corpid=%s&corpsecret=%s' % (url, corpid, corpsecret)
-    try:
-        rs = requestURL(token_url)
-    except ConnectionError:
-        logger.error("获取token失败")
-        exit()
-    return rs["access_token"]
-
-# 发送告警信息
-def sendAppMessage(token, content, agentid):
-    url = 'https://qyapi.weixin.qq.com'
-    values = {
-        "touser": '@all',
-        "msgtype": 'text',
-        "agentid": agentid, 
-        "text": {'content': content},
-        "safe": 0
-        }
-    body=bytes(json.dumps(values, ensure_ascii=False), encoding='utf-8')
-    send_url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=' + token
-    try:
-        rs = requestURL(send_url, body)
-    except ConnectionError:
-        logger.error("发送应用消息失败")
-
-def sendBootMessage(webhookKey, content):
+def sendBootMessage(webhookKey:str, content:str):
     url="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + webhookKey
     values = {
         "msgtype": "markdown",
@@ -101,26 +71,43 @@ def sendBootMessage(webhookKey, content):
     except ConnectionError:
         logger.error("botMessage发送失败")
 
-corpid = options.corpid
-corpsecret = options.corpsecret
+def sendBootImg(webhookKey:str, img_base64:str, base64_md5:str):
+    url="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + webhookKey
+    values = {
+        "msgtype": "image",
+        "image": {
+            "base64": str(img_base64),
+            "md5": base64_md5
+        }
+    }
+    body=bytes(json.dumps(values, ensure_ascii=False), encoding='utf-8')
+    try:
+        requestURL(url, body)
+    except ConnectionError:
+        logger.error("botImg发送失败")
+
+def get_zabbix_itemid(conntent:str):
+    results = re.findall('item_id:\s(.*)', conntent)
+    print(results)
+
 content = options.content
 action = options.action
-if action == "sendApp":
-    logger.info("用户动作为sendApp")
-    token_rs=getToken(corpid, corpsecret)
-    agentid = options.agentid
-    token = token_rs
-    logger.debug("token:%s" % token)
-    logger.debug("content:%s" % content)
-    logger.debug("agentid:%s" % agentid)
-    #发送消息到应用
-    sendAppMessage(token=token, content=content, agentid=agentid)
-elif action == "sendBot":
+if action == "sendBot":
     #发送消息到群组机器人
     logger.info("用户动作为sendBot")
     webhookKey = options.webhookKey
     logger.debug("content:%s" % content)
     logger.debug("webhookKey:%s" % webhookKey)
+    #发送文字告警消息
     sendBootMessage(webhookKey, content)
+    #获取图片
+    itemid = get_zabbix_itemid(content)
+    logger.info(itemid)
+    (img_base64, base64_md5) = get_zabbix_img(itemid)
+    logger.info(img_base64)
+    logger.info(itemid)
+    #发送图片
+    sendBootImg(webhookKey, img_base64, base64_md5)
+
 else:
     logger.error("未知动作")

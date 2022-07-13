@@ -2,17 +2,12 @@
 ![](https://img.shields.io/badge/python-3.6-green)
 ### 功能
 支持两种消息方式送至企业微信方式：
-> #### 发送消息至企业应用
 > #### 发送消息至群组机器人
     
 ### 使用方法
 #### 安装依赖
 
     python3 -m pip install -r requirement.txt    
-
-#### 发送消息至企业应用
-
-    python3 sendMessage.py --action="sendApp" --corpid="企业id" --corpsecret="应用凭证秘钥" --agentid="应用id" --conten="发送内容"
 
 #### 发送消息至群组机器人
     webhook地址直接填key之后的内容
@@ -21,7 +16,7 @@
 
 ### 添加到zabbix
 #### 上传脚本至服务器
-上传位置根据zabbix_server.conf中的AlertScriptsPath值决定
+上传位置根据zabbix_server.conf中的AlertScriptsPath值决定 ,修改get_zabbix_img.py中zabbix相关配置
 #### 添加报警媒介
 管理->报警媒介类型->创建媒体类型
 
