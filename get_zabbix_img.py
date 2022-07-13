@@ -47,10 +47,10 @@ def get_zabbix_img(id):
         
         img_base64 = base64.b64encode(BytesIO(graph_req.content).read())
 
-        # 
-        with open("test.png", 'wb') as f:
-            f.write(base64.b64decode(img_base64))
-            f.close()
+        # 测试生成图片
+        #with open("test.png", 'wb') as f:
+            #f.write(base64.b64decode(img_base64))
+            #f.close()
 
         img_md5 = hashlib.md5(BytesIO(graph_req.content).read()).hexdigest().upper()
         return (img_base64, img_md5)
