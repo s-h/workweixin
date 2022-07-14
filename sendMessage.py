@@ -30,6 +30,9 @@ logLevel = logging.DEBUG
 logging.basicConfig(level=logLevel, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', filename=logFile)
 logger = logging.getLogger(__name__)
 
+# 是否获取zabbix图片并发送
+is_send_img = True
+
 parser = OptionParser()
 #执行动作
 parser.add_option("--action", type="string", dest="action", help=" \
@@ -101,14 +104,15 @@ if action == "sendBot":
     logger.debug("webhookKey:%s" % webhookKey)
     #发送文字告警消息
     sendBootMessage(webhookKey, content)
-    #获取图片
-    itemid = get_zabbix_itemid(content)
-    logger.info(itemid)
-    (img_base64, base64_md5) = get_zabbix_img(itemid)
-    logger.info(img_base64)
-    logger.info(itemid)
-    #发送图片
-    sendBootImg(webhookKey, img_base64, base64_md5)
+    if is_send_img:
+        #获取图片
+        itemid = get_zabbix_itemid(content)
+        logger.info(itemid)
+        (img_base64, base64_md5) = get_zabbix_img(itemid)
+        logger.info(img_base64)
+        logger.info(itemid)
+        #发送图片
+        sendBootImg(webhookKey, img_base64, base64_md5)
 
 else:
     logger.error("未知动作")
